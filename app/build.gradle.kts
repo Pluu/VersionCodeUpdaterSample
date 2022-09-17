@@ -8,9 +8,19 @@ ext {
 }
 
 androidComponents {
+    val isServer = project.ext.properties["IS_GRADLE_PROPERTIES"].toString().toBoolean()
+
     finalizeDsl {
+        println("===Called finalizeDsl===")
+        // Apply, new version code
+        println("[Old] version code = ${it.defaultConfig.versionCode}")
+        it.defaultConfig.versionCode = 3
+        println("[New] version code = ${it.defaultConfig.versionCode}")
+    }
+
+    onVariants { variant ->
+        println("===Called onVariants [${variant.name}]===")
         // Check properties
-        val isServer = project.ext.properties["IS_GRADLE_PROPERTIES"].toString().toBoolean()
         println("[Check] contains flag = ${project.ext.properties.contains("IS_GRADLE_PROPERTIES")}")
         println("[Apply] isServer = $isServer")
 
@@ -19,11 +29,11 @@ androidComponents {
         } else {
             2_000
         }
-
-        // Apply, new version code
-        println("[Old] version code = ${it.defaultConfig.versionCode}")
-        println("[New] version code = $applyVersionCode")
-        it.defaultConfig.versionCode = applyVersionCode
+        variant.outputs.forEach { output ->
+            println("[Old] version code : " + output.versionCode.get())
+            output.versionCode.set(applyVersionCode)
+            println("[New] version code : " + output.versionCode.get())
+        }
     }
 }
 
@@ -50,6 +60,15 @@ android {
             )
         }
     }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("demo") {
+            dimension = "version"
+            versionCode = 2
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
