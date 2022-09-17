@@ -3,6 +3,30 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+ext {
+    set("NEW_VERSION_CODE", 1234)
+}
+
+androidComponents {
+    finalizeDsl {
+        // Check properties
+        val isServer = project.ext.properties["IS_GRADLE_PROPERTIES"].toString().toBoolean()
+        println("[Check] contains flag = ${project.ext.properties.contains("IS_GRADLE_PROPERTIES")}")
+        println("[Apply] isServer = $isServer")
+
+        val applyVersionCode = if (isServer) {
+            project.ext.properties["NEW_VERSION_CODE"] as Int
+        } else {
+            2_000
+        }
+
+        // Apply, new version code
+        println("[Old] version code = ${it.defaultConfig.versionCode}")
+        println("[New] version code = $applyVersionCode")
+        it.defaultConfig.versionCode = applyVersionCode
+    }
+}
+
 android {
     namespace = "com.pluu.sample.versioncodeupdater"
     compileSdk = 33
