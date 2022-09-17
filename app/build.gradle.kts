@@ -3,40 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-ext {
-    set("NEW_VERSION_CODE", 1234)
-}
-
-androidComponents {
-    val isServer = project.ext.properties["IS_GRADLE_PROPERTIES"].toString().toBoolean()
-
-    finalizeDsl {
-        println("===Called finalizeDsl===")
-        // Apply, new version code
-        println("[Old] version code = ${it.defaultConfig.versionCode}")
-        it.defaultConfig.versionCode = 3
-        println("[New] version code = ${it.defaultConfig.versionCode}")
-    }
-
-    onVariants { variant ->
-        println("===Called onVariants [${variant.name}]===")
-        // Check properties
-        println("[Check] contains flag = ${project.ext.properties.contains("IS_GRADLE_PROPERTIES")}")
-        println("[Apply] isServer = $isServer")
-
-        val applyVersionCode = if (isServer) {
-            project.ext.properties["NEW_VERSION_CODE"] as Int
-        } else {
-            2_000
-        }
-        variant.outputs.forEach { output ->
-            println("[Old] version code : " + output.versionCode.get())
-            output.versionCode.set(applyVersionCode)
-            println("[New] version code : " + output.versionCode.get())
-        }
-    }
-}
-
 android {
     namespace = "com.pluu.sample.versioncodeupdater"
     compileSdk = 33
@@ -45,8 +11,8 @@ android {
         applicationId = "com.pluu.sample.versioncodeupdater"
         minSdk = 21
         targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = rootProject.ext.get("versionCode") as Int
+        versionName = rootProject.ext.get("versionName").toString()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -65,7 +31,6 @@ android {
     productFlavors {
         create("demo") {
             dimension = "version"
-            versionCode = 2
         }
     }
 

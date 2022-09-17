@@ -1,0 +1,35 @@
+import java.nio.file.Files
+
+// https://developer.android.com/studio/publish/versioning.html#appversioning
+def VERSION_CODE_MAX = 2100000000
+def checkMaxVersion = { Integer version, BigDecimal maxVersion, String fieldName ->
+    if (version >= maxVersion) {
+        throw IllegalArgumentException("$fieldName must be lesser than $maxVersion")
+    }
+}
+
+// Load properties
+def versionProperties = new Properties()
+try (br = Files.newBufferedReader(rootProject.file("version.properties").toPath())) {
+    versionProperties.load(br)
+}
+
+// Generate extension
+def generateVersionCode = {
+    def isServer = project.ext.getProperty("IS_GRADLE_PROPERTIES").toBoolean()
+    def applyVersionCode
+    if (isServer) {
+        applyVersionCode = versionProperties.getProperty("NEW_VERSION_CODE").toInteger()
+    } else {
+        applyVersionCode = 2_000
+    }
+
+    checkMaxVersion(applyVersionCode, VERSION_CODE_MAX, "VersionCode")
+
+    return applyVersionCode
+}
+
+ext {
+    versionCode = generateVersionCode()
+    versionName = ["Sample", versionCode.toString()].join(".")
+}
